@@ -41,5 +41,7 @@
   "form-helper-eventTicketType-setAlias": " ",
 
   "form-event-ticketTypes-submit": "Salvar",
-  "form-event-ticketTypes-save_next": "Salvar e voltar"
+  "form-event-ticketTypes-save_next": "Salvar e avançar",
+
+  "tickets.purchase": "Comprar tickets"
 }
