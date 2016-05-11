@@ -1,0 +1,45 @@
+{
+  "form-eventTicketType-name": "Nome",
+  "form-placeholder-eventTicketType-name": " ",
+  "form-helper-eventTicketType-name": "Nome do tipo de ticket / bilhete",
+
+  "form-eventTicketType-price": "Preço",
+  "form-placeholder-eventTicketType-price": " ",
+  "form-helper-eventTicketType-price": "Preço dos tickets, deixe em branco ou 0 para inscrições gratuitas",
+
+  "form-eventTicketType-period": "Período",
+  "form-placeholder-eventTicketType-period": " ",
+  "form-helper-eventTicketType-period": "Período em que este ticket vai estar disponível para venda",
+
+  "form-eventTicketType-description": "Descrição",
+  "form-placeholder-eventTicketType-description": " ",
+  "form-helper-eventTicketType-description": "Descrição que aparece para o usuário no momento de seleção do ticket",
+
+  "form-eventTicketType-minForEachUser": "Minímo para cada usuário",
+  "form-placeholder-eventTicketType-minForEachUser": "",
+  "form-helper-eventTicketType-minForEachUser": "Minímo de tickets para compra ou inscrição para cada usuário",
+
+  "form-eventTicketType-maxForEachUser": "Máximo para cada usuário",
+  "form-placeholder-eventTicketType-maxForEachUser": " ",
+  "form-helper-eventTicketType-maxForEachUser": "Máximo de tickets para compra ou inscrição para cada usuário",
+
+
+  "form-eventTicketType-amount": "Total de tickets",
+  "form-placeholder-eventTicketType-amount": " ",
+  "form-helper-eventTicketType-amount": "Máximo de tickets que podem ser criados para esse tipo de ticket",
+
+  "form-eventTicketType-startDate": "Início",
+  "form-placeholder-eventTicketType-startDate": " ",
+  "form-helper-eventTicketType-startDate": "Data em que esse tipo de certificado vai ficar disponível",
+
+  "form-eventTicketType-endDate": "Data final",
+  "form-placeholder-eventTicketType-endDate": " ",
+  "form-helper-eventTicketType-endDate": "Data final para desativar a seleção dessa opção de ticket",
+
+  "form-eventTicketType-setAlias": "Url alternativa",
+  "form-placeholder-eventTicketType-setAlias": " ",
+  "form-helper-eventTicketType-setAlias": " ",
+
+  "form-event-ticketTypes-submit": "Salvar",
+  "form-event-ticketTypes-save_next": "Salvar e voltar"
+}

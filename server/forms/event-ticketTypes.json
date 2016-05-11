@@ -1,0 +1,20 @@
+{
+  "title": "event.edit.ticketTypes",
+  "method": "post",
+
+  "fields": {
+    "eventTicketTypes": {
+      "type": "eventTicketTypes"
+    }
+  },
+  "actions": {
+    "submit": {
+      "type": "submit",
+      "defaultValue": "save"
+    },
+    "save_next": {
+      "type": "submit",
+      "defaultValue": "save_and_next"
+    }
+  }
+}
