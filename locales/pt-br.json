@@ -43,5 +43,12 @@
   "form-event-ticketTypes-submit": "Salvar",
   "form-event-ticketTypes-save_next": "Salvar e avançar",
 
-  "tickets.purchase": "Comprar tickets"
+  "tickets.purchase": "Comprar tickets",
+
+  "event.admin.ticket.type": "Tipos de tickets",
+  "event.admin.ticket": "Tickets",
+
+  "eventTicketType.price.free": "Gratuito",
+
+  "eventTicketType.user.select.empty": "Esse evento não tem tickets disponíveis."
 }

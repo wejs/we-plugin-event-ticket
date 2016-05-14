@@ -19,14 +19,10 @@ module.exports = function (we) {
       //}
     },
     associations: {
-      // // Example:
-      // NxN assoc
-      // assoc1: {
-      //  type: 'belongsToMany',
-      //  model: 'role',
-      //  inverse: 'users',
-      //  through: 'users_roles'
-      //},
+      owner: {
+        type: 'belongsTo',
+        model: 'user'
+      },
       eventTicketType: {
         type: 'belongsTo',
         model: 'eventTicketType'

@@ -1,0 +1,38 @@
+
+.event-ticket-type-table {
+  background-color: #fff;
+  color: #000;
+  /*border-radius: 5px;*/
+}
+
+.event-ticket-type-item h4 {
+  margin-top: 0px;
+  margin-bottom: 5px;
+}
+
+.event-ticket-type-quantity {
+  font-weight: bold;
+  text-align: right;
+}
+
+.event-ticket-type-quantity select {
+  font-size: 33px;
+  height: 45px;
+  width: 80px;
+  display: inherit;
+  border: 2px solid #000;
+  padding: 0px 12px;
+}
+
+.event-ticket-type-quantity input {
+  padding: 0px 10px;
+}
+
+.event-ticket-type-table-actions {
+  text-align: right;
+}
+
+.event-ticket-type-empty {
+  text-align: center;
+  font-weight: bolder;
+}

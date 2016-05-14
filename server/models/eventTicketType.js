@@ -23,11 +23,6 @@ module.exports = function Model(we) {
         formFieldType: 'html',
         formFieldHeight: 300
       },
-      minForEachUser: {
-        type: we.db.Sequelize.INTEGER,
-        formFieldType: 'number',
-        defaultValue: 1
-      },
       maxForEachUser: {
         type: we.db.Sequelize.INTEGER,
         formFieldType: 'number',
@@ -41,7 +36,29 @@ module.exports = function Model(we) {
       },
 
       startDate: { type: we.db.Sequelize.DATE },
-      endDate: { type: we.db.Sequelize.DATE }
+      endDate: {
+        type: we.db.Sequelize.DATE,
+        allowNull: false
+      },
+
+      maxToSelect: {
+        type: we.db.Sequelize.VIRTUAL,
+        formFieldType: null,
+        get: function() {
+          var items = [];
+          var id = this.getDataValue('id');
+          var maxForEachUser = this.getDataValue('maxForEachUser');
+
+          for (var i = 1; i <= maxForEachUser; i++) {
+            items.push({
+              val: id+'-'+i,
+              total: i
+            });
+          }
+
+          return items;
+        }
+      }
     },
     associations: {
       event: {
@@ -84,6 +101,10 @@ module.exports = function Model(we) {
 
             return done();
           });
+        },
+
+        loadUserTickets: function() {
+
         }
       },
       instanceMethods: {

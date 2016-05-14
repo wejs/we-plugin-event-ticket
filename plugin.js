@@ -103,6 +103,84 @@ module.exports = function loadPlugin(projectPath, Plugin) {
     // findAll: { breadcrumbHandler: 'admineventTicketTypeFind' }
   });
 
+  plugin.hooks.on('we-plugin-event:extend:event:admin:menu', function(data, done){
+    data.res.locals.eventAdminMenu.addLinks([
+      {
+        id: 'event.admin.ticket.type',
+        text: '<i class="fa fa-ticket"></i> '+data.req.__('event.admin.ticket.type'),
+        href: '/event/'+data.res.locals.event.id+'/admin/ticket/type',
+        class: null,
+        weight: 4,
+        name: 'event.admin.ticket.type'
+      },
+      {
+        id: 'event.admin.ticket',
+        text: '<i class="fa fa-ticket"></i> '+data.req.__('event.admin.ticket'),
+        href: '/event/'+data.res.locals.event.id+'/admin/ticket',
+        class: null,
+        weight: 6,
+        name: 'event.admin.ticket'
+      }
+    ]);
+
+    done();
+  });
+
+  plugin.hooks.on('we-plugin-event:before:send:event', function(data, done) {
+    if (!data.res.locals.event) return done();
+    data.req.we.utils.async.series([
+      function userEventTicketInvoices(done) {
+        if (!data.req.isAuthenticated()) return done();
+
+        data.req.we.db.models.eventTicketInvoice.findAll({
+          where: { ownerId: data.req.user.id }
+        })
+        .then(function(r){
+          data.res.locals.metadata.eventTicketInvoices = r;
+          done();
+        }).catch(done);
+      },
+      function loadUserTickets(done) {
+        if (!data.req.isAuthenticated()) return done();
+
+        data.req.we.db.models.ticket.findAll({
+          where: { ownerId: data.req.user.id }
+        })
+        .then(function(r){
+          data.res.locals.metadata.userTickets = r;
+          done();
+        }).catch(done);
+      },
+      function loadAllTIckets(done) {
+        data.req.we.db.models.eventTicketType.findAll()
+        .then(function(r){
+          data.res.locals.metadata.eventTicketTypes = r;
+          done();
+        }).catch(done);
+      },
+      function checkLimits(done) {
+        console.log('>>', data.res.locals.metadata);
+        data.res.locals.ticketsSelectorTemplate = 'ticket/selector/empty'
+
+        if (
+          data.res.locals.metadata.eventTicketTypes &&
+          data.res.locals.metadata.eventTicketTypes.length > 1
+        ) {
+          data.res.locals.ticketsSelectorTemplate = 'ticket/selector/multiple';
+        } else if (
+          data.res.locals.metadata.eventTicketTypes &&
+          data.res.locals.metadata.eventTicketTypes.length == 1
+        ) {
+          data.res.locals.ticketsSelectorTemplate = 'ticket/selector/single';
+        } else {
+
+        }
+
+        done();
+      }
+    ], done);
+  });
+
   plugin.addJs('we-plugin-event-ticket', {
     type: 'plugin', weight: 10, pluginName: 'we-plugin-event-ticket',
     path: 'files/public/we-plugin-event-ticket.js'
