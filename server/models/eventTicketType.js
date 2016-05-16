@@ -28,11 +28,30 @@ module.exports = function Model(we) {
         formFieldType: 'number',
         defaultValue: 1
       },
+      // max number of this tickets that can be purchased
       amount: {
         type: we.db.Sequelize.INTEGER,
         formFieldType: 'number',
         defaultValue: 0,
         allowNull: false
+      },
+      // count of items sold
+      sold: {
+        type: we.db.Sequelize.INTEGER,
+        formFieldType: null,
+        defaultValue: 0
+      },
+
+      ticketsAvaibleCount: {
+        type: we.db.Sequelize.VIRTUAL,
+        formFieldType: null,
+        get: function() {
+          var c = (this.getDataValue('amount') - this.getDataValue('sold'));
+
+          if (c < 0 ) c = 0;
+
+          return c;
+        }
       },
 
       startDate: { type: we.db.Sequelize.DATE },
@@ -103,7 +122,111 @@ module.exports = function Model(we) {
           });
         },
 
-        loadUserTickets: function() {
+        getIdsFromBody: function getIdsFromBody(body) {
+          var ids = {};
+          var id;
+
+          for(var attr in body) {
+            if (attr.startsWith('qt_ett_') && Number(body[attr])) {
+              id = attr.replace('qt_ett_', '');
+              if (Number(id)) {
+                ids[id] = body[attr];
+              }
+            }
+          }
+
+          return ids;
+        },
+        makeInvoice: function makeInvoice(opts, user) {
+          return we.db.defaultConnection
+          .transaction(function (t) {
+            var fns = [];
+
+            opts.eventTicketType.forEach(function (ett) {
+              var total = 0;
+              var lines = [];
+
+              // increment sold count
+              fns.push(ett.increment('sold', { by: opts.ettsData[ett.id]} ));
+
+              for (var i = 0; i < opts.ettsData[ett.id]; i++) {
+                total += ett.price;
+
+                lines.push({
+                  description: 'event.ticket.order.item.description',
+                  value: ett.price,
+                  freight: 0, // Dont need for virtual tickets
+                  modelName: 'eventTicketType',
+                  modelId: ett.id
+                });
+              }
+              // add create query
+              fns.push(
+                we.db.models.payment_order.create({
+                  description: 'event.ticket.order.description',
+                  total: total,
+                  currency: we.config.payment.currency,
+                  // status: ,
+                  orderTypeIdentifier: 'ev-'+ett.eventId+'-tk-'+ett.id,
+                  data: {
+                    eventTicketType: ett.get(),
+                    ettsData: opts.ettsData[ett.id]
+                  },
+                  costumerId: user.id,
+                  lines: lines
+                },
+                {
+                  include: [{
+                    model: we.db.models.payment_order_line,
+                    as: 'lines'
+                  }],
+                  transaction: t
+                })
+                // then check if have vacancy, this prevents parallel insert count errors
+                .then(function checkIfHaveTicketsAvaible(order){
+                  return we.db.models.eventTicketType.findOne({
+                    where: { id: ett.id },
+                    attributes: ['sold'],
+                    raw: true
+                  }, { transaction: t })
+                  .then(function (r) {
+                    if (ett.amount < r.sold) {
+                      // rollback the transaction with error
+                      throw new Error('event.ticket.type.sb.sold_out');
+                    } else {
+                      return order;
+                    }
+                  })
+                })
+              );
+
+            });
+
+            return we.db.Sequelize.Promise.all(fns);
+          });
+        },
+
+        createOneTicket: function createOneTicket(opts) {
+
+          return new we.db.Sequelize.Promise(function(resolve, reject) {
+            we.plugins['we-plugin-ticket']
+            .createTicket({
+              title: opts.event.title,
+              typeName: opts.eventTicketType.name,
+              typeIdentifier: 'ev-'+opts.event.id+'-t-'+opts.eventTicketType.id,
+              date: opts.event.startDate,
+              fullName: opts.user.fullName,
+              ownerId: opts.user.id,
+              location: opts.event.location,
+              eventUrl: '/event/'+opts.event.id
+            }, function (err, salvedTicket) {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(salvedTicket);
+              }
+            });
+          });
 
         }
       },
@@ -117,6 +240,9 @@ module.exports = function Model(we) {
       hooks: {
         beforeCreate: function beforeCreate(record, opts, done) {
           if (!record.eventId) return done('eventTicketType.error.required.eventId');
+
+          record.sold = 0;
+
           done();
         }
       }

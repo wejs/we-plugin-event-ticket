@@ -88,6 +88,29 @@ module.exports = function loadPlugin(projectPath, Plugin) {
       titleHandler : 'i18n',
       titleI18n: 'event.admin.ticket.type.delete',
       responseType: 'json'
+    },
+    'post /event/:eventId/ticket/buy/start': {
+      controller: 'eventTicketType',
+      action: 'startBuy',
+      model: 'eventTicketInvoice',
+      permission: 'find_event',
+      responseType: 'json'
+    },
+
+    'get /event/:eventId/ticket/buy/set-names': {
+
+    },
+
+    'post /event/:eventId/ticket/buy/set-names': {
+
+    },
+
+    'get /event/:eventId/ticket/buy/add-payment-method': {
+
+    },
+
+    'post /event/:eventId/ticket/buy/add-payment-method': {
+
     }
   })
 

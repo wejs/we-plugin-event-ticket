@@ -16,14 +16,15 @@
   ],
   "dependencies": {},
   "devDependencies": {
+    "express-mysql-session": "^1.0.0",
     "fs-extra": "^0.18.2",
+    "istanbul": "^0.4.3",
     "mocha": "^2.2.5",
+    "mysql": "^2.10.2",
     "rimraf": "^2.3.4",
     "supertest": "^1.0.1",
     "we-core": "wejs/we-core",
-    "we-plugin-form": "wejs/we-plugin-form",
-    "we-theme-admin-default": "wejs/we-theme-admin-default",
-    "we-theme-site-wejs": "wejs/we-theme-site-wejs",
+    "we-plugin-vocabulary": "^0.3.23",
     "we-test-tools": "wejs/we-test-tools"
   },
   "peerDependencies": {

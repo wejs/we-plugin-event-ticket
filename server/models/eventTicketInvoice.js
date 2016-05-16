@@ -9,14 +9,17 @@
 module.exports = function (we) {
   var model = {
     definition: {
-      // // Examples:
-      // attrString: { type: we.db.Sequelize.STRING },
-      // attrText: { type: we.db.Sequelize.TEXT, formFieldType: 'text' },
-      // attrHtml: {
-      //  type: we.db.Sequelize.TEXT,
-      //  formFieldType: 'html',
-      //  formFieldHeight: 200
-      //}
+      // new, used, invalid
+      status: {
+        type: we.db.Sequelize.STRING(10),
+        formFieldType: null, // hide from form
+        defaultValue: 'new'
+      },
+
+      items: {
+        type: we.db.Sequelize.BLOB,
+        formFieldType: null
+      }
     },
     associations: {
       owner: {

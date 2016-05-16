@@ -8,7 +8,9 @@ before(function(callback) {
   this.slow(100);
 
   testTools.copyLocalConfigIfNotExitst(projectPath, function() {
-    we = require('we-core');
+    var We = require('we-core');
+    we = new We();
+
     testTools.init({}, we);
 
     we.bootstrap({
@@ -39,8 +41,7 @@ after(function (callback) {
     projectPath + '/files/public/min',
 
     projectPath + '/files/public/project.css',
-    projectPath + '/files/public/project.js',
-    projectPath + '/config/local.js',
+    projectPath + '/files/public/project.js'
   ];
 
   we.utils.async.each(tempFolders, function(folder, next){
@@ -48,6 +49,5 @@ after(function (callback) {
   }, function(err) {
     if (err) throw new Error(err);
     callback();
-  })
-
+  });
 });
