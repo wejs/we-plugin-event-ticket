@@ -28,7 +28,8 @@
     "we-test-tools": "wejs/we-test-tools"
   },
   "peerDependencies": {
-    "we-plugin-event": ">= 0.3"
+    "we-plugin-event": ">= 0.3",
+    "we-plugin-payment": ">= 1.0"
   },
   "license": "MIT",
   "author": "Alberto Souza <contato@albertosouza.net>",

@@ -182,7 +182,7 @@ module.exports = function loadPlugin(projectPath, Plugin) {
         }).catch(done);
       },
       function checkLimits(done) {
-        console.log('>>', data.res.locals.metadata);
+        // console.log('>>', data.res.locals.metadata);
         data.res.locals.ticketsSelectorTemplate = 'ticket/selector/empty'
 
         if (

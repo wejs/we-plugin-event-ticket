@@ -77,6 +77,13 @@ module.exports = function Model(we) {
 
           return items;
         }
+      },
+      paymentLineIdentifier: {
+        type: we.db.Sequelize.VIRTUAL,
+        formFieldType: null,
+        get: function(){
+          return 'ev-'+this.getDataValue('eventId')+'-ticket-'+this.getDataValue('id');
+        }
       }
     },
     associations: {
@@ -141,13 +148,14 @@ module.exports = function Model(we) {
           return we.db.defaultConnection
           .transaction(function (t) {
             var fns = [];
+            var lines = [];
+            var total = 0;
 
+            // get all tickets data
             opts.eventTicketType.forEach(function (ett) {
-              var total = 0;
-              var lines = [];
 
-              // increment sold count
-              fns.push(ett.increment('sold', { by: opts.ettsData[ett.id]} ));
+              // 3- increment sold count
+              fns.push(ett.increment('sold', { by: opts.ettsData[ett.id] } ));
 
               for (var i = 0; i < opts.ettsData[ett.id]; i++) {
                 total += ett.price;
@@ -157,77 +165,127 @@ module.exports = function Model(we) {
                   value: ett.price,
                   freight: 0, // Dont need for virtual tickets
                   modelName: 'eventTicketType',
-                  modelId: ett.id
+                  modelId: ett.id,
+                  orderLineIdentifier: 'ev-'+opts.event.id+'-ticket-'+ett.id,
+                  hookAfterSuccess: 'we-plugin-event-ticket:after:order:item:payment:success',
+                  hookAfterCancel: 'we-plugin-event-ticket:after:order:item:payment:cancel'
                 });
               }
-              // add create query
-              fns.push(
-                we.db.models.payment_order.create({
-                  description: 'event.ticket.order.description',
-                  total: total,
-                  currency: we.config.payment.currency,
-                  // status: ,
-                  orderTypeIdentifier: 'ev-'+ett.eventId+'-tk-'+ett.id,
-                  data: {
-                    eventTicketType: ett.get(),
-                    ettsData: opts.ettsData[ett.id]
-                  },
-                  costumerId: user.id,
-                  lines: lines
-                },
-                {
-                  include: [{
-                    model: we.db.models.payment_order_line,
-                    as: 'lines'
-                  }],
-                  transaction: t
-                })
-                // then check if have vacancy, this prevents parallel insert count errors
-                .then(function checkIfHaveTicketsAvaible(order){
-                  return we.db.models.eventTicketType.findOne({
-                    where: { id: ett.id },
-                    attributes: ['sold'],
-                    raw: true
-                  }, { transaction: t })
-                  .then(function (r) {
-                    if (ett.amount < r.sold) {
-                      // rollback the transaction with error
-                      throw new Error('event.ticket.type.sb.sold_out');
-                    } else {
-                      return order;
-                    }
-                  })
-                })
-              );
 
             });
+
+            // 4- create one payment order for all tickets
+            fns.push(
+              we.db.models.payment_order.create({
+                description: 'event.ticket.order.description',
+                total: total,
+                currency: we.config.payment.currency,
+                // status: ,
+                orderTypeIdentifier: 'ev-'+opts.event.id+'-ticket',
+                data: {
+                  eventId: opts.event.id,
+                  ettsData: opts.ettsData
+                },
+                costumerId: user.id,
+                lines: lines,
+                hookAfterSuccess: 'we-plugin-event-ticket:after:order:payment:success',
+                hookAfterCancel: 'we-plugin-event-ticket:after:order:payment:cancel'
+              },
+              {
+                include: [{
+                  model: we.db.models.payment_order_line,
+                  as: 'lines'
+                }],
+                transaction: t
+              })
+              // 5- check if have vacancy, this prevents parallel insert count errors
+              .then(function checkIfHaveTicketsAvaible(order) {
+                var ettIds = [];
+                // get all tickets data
+                for (var i = 0; i < opts.eventTicketType.length; i++) {
+                  ettIds.push(opts.eventTicketType[i].id);
+                }
+
+                return we.db.models.eventTicketType.findAll({
+                  where: { id: ettIds },
+                  attributes: ['sold', 'amount'],
+                  raw: true
+                })
+                .then(function (etts) {
+                  for (var i = 0; i < etts.length; i++) {
+                    if ( (etts[i].amount-etts[i].sold) < 0) {
+                      // rollback the transaction with error
+                      throw new Error('event.ticket.type.sb.sold_out');
+                    }
+                  }
+
+                  return order;
+                });
+              })
+            );
+
+            fns.push(we.db.models.eventTicketType.findAll);
 
             return we.db.Sequelize.Promise.all(fns);
           });
         },
 
-        createOneTicket: function createOneTicket(opts) {
+        checkUserMaxToBuy: function checkUserMaxToBuy(etts) {
+          var ettsData = this.ettsData;
 
-          return new we.db.Sequelize.Promise(function(resolve, reject) {
-            we.plugins['we-plugin-ticket']
-            .createTicket({
-              title: opts.event.title,
-              typeName: opts.eventTicketType.name,
-              typeIdentifier: 'ev-'+opts.event.id+'-t-'+opts.eventTicketType.id,
-              date: opts.event.startDate,
-              fullName: opts.user.fullName,
-              ownerId: opts.user.id,
-              location: opts.event.location,
-              eventUrl: '/event/'+opts.event.id
-            }, function (err, salvedTicket) {
-              if (err) {
-                reject(err);
-              } else {
-                resolve(salvedTicket);
-              }
-            });
+          var identifiers = etts.map(function(ett){
+            return ett.paymentLineIdentifier;
           });
 
+          return we.db.models.payment_order_line.findAll({
+            where: {
+              orderLineIdentifier: identifiers
+            },
+            attributes: ['id', 'modelId'],
+            raw: true
+          })
+          .then(function (orderLines) {
+            // user dont have tickets of this types
+            if (orderLines && orderLines.length) {
+              if (we.db.models.eventTicketType.userHaveMaxForEachUser(orderLines, etts, ettsData)) {
+                throw new Error('event.ticket.type.sb.maxForEachUser');
+              }
+            }
+
+            return etts;
+          })
+        },
+
+        /**
+         * Check if one user are in max tickets items
+         *
+         * @param  {Array} orderLines
+         * @param  {Object} etts
+         * @return {Boolean}
+         */
+        userHaveMaxForEachUser: function userHaveMaxForEachUser(orderLines, etts, ettsData) {
+          var ticketsCount = {};
+          var i;
+          // count every orderLine
+          for (i = 0; i < orderLines.length; i++) {
+            if (!ticketsCount[orderLines[i].modelId]) {
+              ticketsCount[orderLines[i].modelId] = 1;
+            } else {
+              ticketsCount[orderLines[i].modelId]++;
+            }
+          }
+
+          for (i = 0; i < etts.length; i++) {
+            if (ticketsCount[etts[i].id]) {
+              ticketsCount[etts[i].id] += Number(ettsData[etts[i].id]);
+
+              if (etts[i].maxForEachUser <= ticketsCount[etts[i].id]) {
+                return true;
+              }
+            }
+          }
+
+          return false;
         }
       },
       instanceMethods: {

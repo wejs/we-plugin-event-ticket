@@ -2,5 +2,10 @@
 	"user": "user",
 	"response.serveError.title": "response.serveError.title",
 	"event.ticket.type.sold_out": "event.ticket.type.sold_out",
-	"event.ticket.type.sb.sold_out": "event.ticket.type.sb.sold_out"
+	"event.ticket.type.sb.sold_out": "event.ticket.type.sb.sold_out",
+	"hookAfterSuccess cannot be null": "hookAfterSuccess cannot be null",
+	"hookAfterFail cannot be null": "hookAfterFail cannot be null",
+	"ER_BAD_FIELD_ERROR: Unknown column 'orderLineIdentifier' in 'field list'": "ER_BAD_FIELD_ERROR: Unknown column 'orderLineIdentifier' in 'field list'",
+	"event.ticket.type.sb.not_found": "event.ticket.type.sb.not_found",
+	"event.ticket.type.sb.maxForEachUser": "event.ticket.type.sb.maxForEachUser"
 }

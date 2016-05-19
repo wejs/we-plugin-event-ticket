@@ -86,9 +86,6 @@ describe('tickettypeFeature', function () {
 
   describe('ticket buy', function () {
     beforeEach(function(done){
-
-      console.log('rodo')
-
       we.utils.async.series([
         function(done) {
           we.db.models.payment_order_line.destroy({
@@ -116,7 +113,7 @@ describe('tickettypeFeature', function () {
       ], done);
     });
 
-    it('user should buy one ticket without concurrency', function(done) {
+    it('user should create one payment order without concurrency', function(done) {
       var data = {};
 
       data['qt_ett_'+ett.id] = 1;
@@ -124,23 +121,35 @@ describe('tickettypeFeature', function () {
       authenticatedRequest
       .post('/event/'+cf.id+'/ticket/buy/start')
       .send(data)
-      .expect(200)
+      .expect(302)
       .end(function (err, res) {
         if (err) {
           console.error(res.text);
           return done(err);
         }
 
-        done();
+        we.db.models.payment_order.findAll({
+          where: { orderTypeIdentifier: 'ev-'+cf.id+'-ticket' }
+        })
+        .then(function (r) {
+
+          assert(r[0]);
+          assert.equal(r[0].total, ett.price);
+          assert.equal(r[0].hookAfterSuccess, 'we-plugin-event-ticket:after:order:payment:success');
+          assert.equal(r[0].hookAfterCancel, 'we-plugin-event-ticket:after:order:payment:cancel');
+
+          done();
+        })
+        .catch(done);
       });
     });
 
-    it('user should do rollback and return event.ticket.type.sb.sold_out error', function(done) {
+    it('user should do rollback and set message event.ticket.type.sb.sold_out error', function(done) {
       var data = {};
 
       data['qt_ett_'+ett.id] = 1;
 
-      we.utils.async.parallel([
+      we.utils.async.series([
         function (done) {
           authenticatedRequest
           .post('/event/'+cf.id+'/ticket/buy/start')
@@ -151,9 +160,6 @@ describe('tickettypeFeature', function () {
               console.error(res.text);
               return done(err);
             }
-
-            // console.log('<<', res.status, err, res.body);
-
             done();
           });
         },
@@ -162,14 +168,14 @@ describe('tickettypeFeature', function () {
           authenticatedRequest
           .post('/event/'+cf.id+'/ticket/buy/start')
           .send(data)
-          .expect(302)
+          .expect(400)
           .end(function (err, res) {
             if (err) {
               console.error(res.text);
               return done(err);
             }
-
-            // console.log('<<2', res.status, err, res.body);
+            assert.equal(res.body.messages[0].status, 'danger');
+            assert.equal(res.body.messages[0].message, 'event.ticket.type.sb.maxForEachUser');
 
             done();
           });
@@ -179,7 +185,17 @@ describe('tickettypeFeature', function () {
           return done(err);
         }
 
-        done();
+        authenticatedRequest
+        .get('/event/'+cf.id)
+        .set('Accept', 'application/json')
+        .expect(200)
+        .end(function (err, res) {
+          if (err) {
+            console.error(res.text);
+            return done(err);
+          }
+          done();
+        });
       });
 
     });
