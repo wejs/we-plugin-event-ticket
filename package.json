@@ -1,20 +1,11 @@
 {
   "name": "we-plugin-event-ticket",
   "description": "We.js plugin to integrate we-plugin-ticket with we-plugin-event for add tickets in events",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "main": "plugin.js",
   "scripts": {
-    "test": "NODE_ENV=test LOG_LV=info ./node_modules/.bin/mocha test/bootstrap.js test/**/*.test.js",
-    "prepublish": "npm prune"
+    "test": "NODE_ENV=test LOG_LV=info ./node_modules/.bin/mocha test/bootstrap.js test/**/*.test.js"
   },
-  "keywords": [
-    "plugin",
-    "ticket",
-    "event",
-    "conferente",
-    "we.js"
-  ],
-  "dependencies": {},
   "devDependencies": {
     "express-mysql-session": "^1.0.0",
     "fs-extra": "^0.18.2",
@@ -24,14 +15,20 @@
     "rimraf": "^2.3.4",
     "supertest": "^1.0.1",
     "we-core": "wejs/we-core",
-    "we-plugin-vocabulary": "^0.3.23",
     "we-test-tools": "wejs/we-test-tools"
-  },
-  "peerDependencies": {
-    "we-plugin-event": ">= 0.3",
-    "we-plugin-payment": ">= 1.0"
   },
   "license": "MIT",
   "author": "Alberto Souza <contato@albertosouza.net>",
-  "repository": "wejs/we-plugin-event-ticket"
+  "repository": "wejs/we-plugin-event-ticket",
+  "keywords": [
+    "ticket",
+    "conferente",
+    "wejs-plugin"
+  ],
+  "wejs": {
+    "dependencies": {
+      "we-plugin-event": true,
+      "we-plugin-payment": true
+    }
+  }
 }

@@ -2,14 +2,16 @@
 
 We.js plugin to integrate **we-plugin-ticket** with **we-plugin-event** for add tickets in events
 
-# API
+## Installation
 
-TODO
+```sh
+we i we-plugin-event-ticket
+```
 
 ## Links
 
-> * We.js site: http://wejs.org
+- We.js site: http://wejs.org
 
-# Copyright
+## Copyright
 
 Under [the MIT license](https://github.com/wejs/we/blob/master/LICENSE.md)
